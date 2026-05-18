@@ -19,13 +19,20 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       # NOTE: do NOT set `registry-url` here. It writes an .npmrc with
-      # `_authToken=${NODE_AUTH_TOKEN}`, which makes pnpm/npm use token auth
-      # and skip OIDC trusted publishing entirely. pnpm publishes to the
-      # default registry (registry.npmjs.org) without it.
+      # `_authToken=${NODE_AUTH_TOKEN}`, which makes npm use token auth and
+      # skip OIDC trusted publishing entirely. npm publishes to the default
+      # registry (registry.npmjs.org) without it.
+      # Node 22.14+ required for npm trusted publishing.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: "22.14.0"
           cache: pnpm
+
+      # pnpm publish does not yet support OIDC trusted publishing (see
+      # pnpm/pnpm#9812), so we shell out to npm for the upload step.
+      # Trusted publishing requires npm CLI >= 11.5.1; Node 22 ships with
+      # npm 10.x, so upgrade explicitly.
+      - run: npm install --global npm@latest
 
       - run: pnpm install --frozen-lockfile
 
@@ -39,7 +46,7 @@ jobs:
           if npm view @dangayle/rustlike@$VERSION version >/dev/null 2>&1; then
             echo "@dangayle/rustlike@$VERSION already published, skipping"
           else
-            pnpm publish --access public --provenance --no-git-checks
+            npm publish --access public --provenance
           fi
 
       - name: Publish @dangayle/eslint-plugin-rustlike
@@ -49,7 +56,7 @@ jobs:
           if npm view @dangayle/eslint-plugin-rustlike@$VERSION version >/dev/null 2>&1; then
             echo "@dangayle/eslint-plugin-rustlike@$VERSION already published, skipping"
           else
-            pnpm publish --access public --provenance --no-git-checks
+            npm publish --access public --provenance
           fi
 
       - name: Create GitHub Release
