@@ -64,5 +64,15 @@ ruleTester.run("no-object-spread-on-adt", rule, {
       code: "const obj = Object.assign(target, Some(value));",
       errors: [{ messageId: "noAssignOnAdt" }],
     },
+    // Spreading a variable assigned to an ADT
+    {
+      code: "const myOk = Ok(5); const obj = { ...myOk };",
+      errors: [{ messageId: "noSpreadOnAdt" }],
+    },
+    // Object.assign with a variable assigned to an ADT
+    {
+      code: "const myErr = Err('error'); const obj = Object.assign({}, myErr);",
+      errors: [{ messageId: "noAssignOnAdt" }],
+    },
   ],
 });

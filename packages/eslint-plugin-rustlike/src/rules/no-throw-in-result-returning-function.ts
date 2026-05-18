@@ -43,8 +43,8 @@ const rule: Rule.RuleModule = {
       // Get the source code of the return type annotation
       const typeText = context.sourceCode.getText(returnType);
 
-      // Check if it contains "Result<" (simple heuristic)
-      return typeText.includes("Result<") || typeText.includes("Result ");
+      // Check if it contains "Result" or "AsyncResult"
+      return /\b(?:Async)?Result\b/.test(typeText);
     }
 
     function enterFunction(node: Rule.Node): void {
