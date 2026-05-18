@@ -1,18 +1,6 @@
 {
   "name": "@dangayle/eslint-plugin-rustlike",
   "version": "0.1.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dangayle/rustlike.git",
-    "directory": "packages/eslint-plugin-rustlike"
-  },
-  "homepage": "https://github.com/dangayle/rustlike/tree/main/packages/eslint-plugin-rustlike#readme",
-  "bugs": {
-    "url": "https://github.com/dangayle/rustlike/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "description": "ESLint rules to enforce Rust-like patterns with the rustlike library",
   "keywords": [
     "eslint",
@@ -23,8 +11,17 @@
     "result",
     "rust"
   ],
+  "homepage": "https://github.com/dangayle/rustlike/tree/main/packages/eslint-plugin-rustlike#readme",
+  "bugs": {
+    "url": "https://github.com/dangayle/rustlike/issues"
+  },
   "license": "MIT",
   "author": "Dan Gayle <dangayle@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dangayle/rustlike.git",
+    "directory": "packages/eslint-plugin-rustlike"
+  },
   "files": [
     "dist"
   ],
@@ -35,6 +32,9 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.cjs"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown",

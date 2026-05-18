@@ -1,17 +1,6 @@
 {
   "name": "@dangayle/rustlike",
   "version": "0.1.0",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dangayle/rustlike.git"
-  },
-  "homepage": "https://github.com/dangayle/rustlike#readme",
-  "bugs": {
-    "url": "https://github.com/dangayle/rustlike/issues"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "description": "TypeScript utilities for writing Rust-like code: Result, Option, exhaustive matching, and immutability helpers",
   "keywords": [
     "functional",
@@ -22,8 +11,16 @@
     "rust",
     "typescript"
   ],
+  "homepage": "https://github.com/dangayle/rustlike#readme",
+  "bugs": {
+    "url": "https://github.com/dangayle/rustlike/issues"
+  },
   "license": "MIT",
   "author": "Dan Gayle <dangayle@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dangayle/rustlike.git"
+  },
   "files": [
     "dist"
   ],
@@ -52,6 +49,9 @@
         "default": "./dist/node.cjs"
       }
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsdown && pnpm -C packages/eslint-plugin-rustlike build",
