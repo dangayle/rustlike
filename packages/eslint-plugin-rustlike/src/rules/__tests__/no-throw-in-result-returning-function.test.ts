@@ -91,5 +91,12 @@ ruleTester.run("no-throw-in-result-returning-function", rule, {
       }`,
       errors: [{ messageId: "noThrowInResult" }],
     },
+    // Async function returning AsyncResult
+    {
+      code: `function fetchAsync(): AsyncResult<Data, Error> {
+        throw new Error("not implemented");
+      }`,
+      errors: [{ messageId: "noThrowInResult" }],
+    },
   ],
 });
