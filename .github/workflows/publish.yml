@@ -1,0 +1,61 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      - run: pnpm test:run
+
+      - name: Publish @dangayle/rustlike
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view @dangayle/rustlike@$VERSION version >/dev/null 2>&1; then
+            echo "@dangayle/rustlike@$VERSION already published, skipping"
+          else
+            pnpm publish --access public --provenance --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish @dangayle/eslint-plugin-rustlike
+        working-directory: packages/eslint-plugin-rustlike
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view @dangayle/eslint-plugin-rustlike@$VERSION version >/dev/null 2>&1; then
+            echo "@dangayle/eslint-plugin-rustlike@$VERSION already published, skipping"
+          else
+            pnpm publish --access public --provenance --no-git-checks
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
