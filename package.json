@@ -69,11 +69,14 @@
     "prepublishOnly": "pnpm run build",
     "release:patch": "node scripts/release.mjs patch",
     "release:minor": "node scripts/release.mjs minor",
-    "release:major": "node scripts/release.mjs major"
+    "release:major": "node scripts/release.mjs major",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
     "@vitest/coverage-v8": "^4.0.18",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "oxlint-tsgolint": "^0.16.0",
@@ -86,5 +89,11 @@
     "overrides": {
       "rollup": ">=4.59.0"
     }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "oxfmt",
+      "oxlint"
+    ]
   }
 }
