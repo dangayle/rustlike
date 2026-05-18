@@ -7,7 +7,17 @@
 import type { Rule } from "eslint";
 
 // ADT constructor/factory names to detect
-const adtNames = new Set(["Ok", "Err", "Some", "None", "Result", "Option", "AsyncResult", "Iter", "AsyncIter"]);
+const adtNames = new Set([
+  "Ok",
+  "Err",
+  "Some",
+  "None",
+  "Result",
+  "Option",
+  "AsyncResult",
+  "Iter",
+  "AsyncIter",
+]);
 
 function resolveNode(node: Rule.Node, context: Rule.RuleContext): Rule.Node {
   if (node.type === "Identifier") {
@@ -16,13 +26,13 @@ function resolveNode(node: Rule.Node, context: Rule.RuleContext): Rule.Node {
     const scope = context.sourceCode?.getScope?.(node) || context.getScope();
     let variable = null;
     let currentScope = scope;
-    
+
     while (currentScope) {
       variable = currentScope.variables.find((v: any) => v.name === node.name);
       if (variable) break;
       currentScope = currentScope.upper;
     }
-    
+
     if (variable && variable.defs.length > 0) {
       const def = variable.defs[0];
       // def.node is usually a VariableDeclarator
@@ -36,7 +46,7 @@ function resolveNode(node: Rule.Node, context: Rule.RuleContext): Rule.Node {
 
 function isAdtCall(node: Rule.Node, context: Rule.RuleContext): boolean {
   const resolved = resolveNode(node, context);
-  
+
   if (resolved.type === "CallExpression") {
     const callee = resolved.callee;
     if (callee.type === "Identifier" && adtNames.has(callee.name)) {
@@ -56,7 +66,7 @@ function isAdtCall(node: Rule.Node, context: Rule.RuleContext): boolean {
 
 function getAdtName(node: Rule.Node, context: Rule.RuleContext): string {
   const resolved = resolveNode(node, context);
-  
+
   if (resolved.type === "CallExpression") {
     const callee = resolved.callee;
     if (callee.type === "Identifier") {
