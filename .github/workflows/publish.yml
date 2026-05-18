@@ -38,8 +38,6 @@ jobs:
           else
             pnpm publish --access public --provenance --no-git-checks
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @dangayle/eslint-plugin-rustlike
         working-directory: packages/eslint-plugin-rustlike
@@ -50,8 +48,6 @@ jobs:
           else
             pnpm publish --access public --provenance --no-git-checks
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
