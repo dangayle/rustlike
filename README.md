@@ -859,6 +859,36 @@ This repo uses two ESLint configurations:
 
 The examples use the public plugin to demonstrate real-world usage.
 
+## Publishing
+
+Releases are fully automated via GitHub Actions. To cut a new version:
+
+```bash
+pnpm release:patch    # 0.1.0 → 0.1.1 (bug fixes)
+pnpm release:minor    # 0.1.0 → 0.2.0 (new features, backward compatible)
+pnpm release:major    # 0.1.0 → 1.0.0 (breaking changes)
+```
+
+The release script bumps both packages in sync, creates a signed commit and signed tag, and pushes them. The [`Publish to npm`](.github/workflows/publish.yml) workflow then:
+
+1. Runs lint, typecheck, build, and tests
+2. Publishes `@dangayle/rustlike` and `@dangayle/eslint-plugin-rustlike` with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) — a cryptographic attestation linking the package back to this repo and commit
+3. Creates a GitHub Release with auto-generated notes
+
+The workflow safely skips packages whose version is already on npm, so re-running on an existing tag is a no-op.
+
+### Manual publish (not recommended)
+
+Only needed for the very first publish or recovery scenarios:
+
+```bash
+pnpm build
+pnpm publish --access public
+pnpm -C packages/eslint-plugin-rustlike publish --access public
+```
+
+Requires being logged in to npm (`pnpm login`) with publish access to the `@dangayle` scope.
+
 ## License
 
 MIT
