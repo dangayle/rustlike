@@ -861,7 +861,7 @@ The examples use the public plugin to demonstrate real-world usage.
 
 ## Publishing
 
-Releases are fully automated via GitHub Actions. To cut a new version:
+Releases are PR-driven and fully automated. To cut a new version:
 
 ```bash
 pnpm release:patch    # 0.1.0 → 0.1.1 (bug fixes)
@@ -869,13 +869,16 @@ pnpm release:minor    # 0.1.0 → 0.2.0 (new features, backward compatible)
 pnpm release:major    # 0.1.0 → 1.0.0 (breaking changes)
 ```
 
-The release script bumps both packages in sync, creates a signed commit and signed tag, and pushes them. The [`Publish to npm`](.github/workflows/publish.yml) workflow then:
+The release script bumps both packages in sync on a `release/vX.Y.Z` branch, signs the commit, pushes, and opens a pull request. From there:
 
-1. Runs lint, typecheck, build, and tests
-2. Publishes `@dangayle/rustlike` and `@dangayle/eslint-plugin-rustlike` with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) — a cryptographic attestation linking the package back to this repo and commit
-3. Creates a GitHub Release with auto-generated notes
+1. CI runs lint, typecheck, build, and tests on the PR
+2. You squash-merge the PR into `main`
+3. The [`Tag release`](.github/workflows/tag-release.yml) workflow detects the version bump and creates the `vX.Y.Z` tag
+4. The [`Publish to npm`](.github/workflows/publish.yml) workflow triggers on the tag and:
+   - Publishes both packages with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) — a cryptographic attestation linking the package back to this repo and commit
+   - Creates a GitHub Release with auto-generated notes
 
-The workflow safely skips packages whose version is already on npm, so re-running on an existing tag is a no-op.
+The publish workflow safely skips packages whose version is already on npm, so re-running on an existing tag is a no-op.
 
 ### Manual publish (not recommended)
 

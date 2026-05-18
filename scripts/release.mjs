@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Bump version in both packages, commit, tag, push.
+// Open a release PR. After merge, a workflow creates the signed tag and CI publishes.
 // Usage: node scripts/release.mjs <patch|minor|major|x.y.z>
 
 import { execSync } from "node:child_process";
@@ -27,27 +27,52 @@ const bump = (current, kind) => {
   throw new Error(`Unknown bump: ${kind}`);
 };
 
-const status = execSync("git status --porcelain", { cwd: root, encoding: "utf8" });
+const run = (cmd, opts = {}) =>
+  execSync(cmd, { cwd: root, encoding: "utf8", stdio: ["inherit", "pipe", "inherit"], ...opts });
+
+const status = run("git status --porcelain");
 if (status.trim()) {
   console.error("Working tree not clean. Commit or stash first.");
   process.exit(1);
 }
 
+const branch = run("git rev-parse --abbrev-ref HEAD").trim();
+if (branch !== "main") {
+  console.error(`Must be on main. Currently on: ${branch}`);
+  process.exit(1);
+}
+
+run("git fetch origin");
+run("git pull --ff-only origin main", { stdio: "inherit" });
+
 const pkgs = pkgPaths.map((p) => ({ path: p, json: JSON.parse(readFileSync(p, "utf8")) }));
 const currentVersion = pkgs[0].json.version;
 const nextVersion = bump(currentVersion, arg);
+const releaseBranch = `release/v${nextVersion}`;
 
-console.log(`${currentVersion} -> ${nextVersion}`);
+console.log(`Releasing ${currentVersion} -> ${nextVersion} on ${releaseBranch}`);
+
+run(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
 
 for (const { path, json } of pkgs) {
   json.version = nextVersion;
   writeFileSync(path, `${JSON.stringify(json, null, 2)}\n`);
-  console.log(`  bumped ${path.replace(`${root}/`, "")}`);
 }
+run("pnpm fmt", { stdio: "inherit" });
 
-execSync(`git add -A`, { cwd: root, stdio: "inherit" });
-execSync(`git commit -S -m "Release v${nextVersion}"`, { cwd: root, stdio: "inherit" });
-execSync(`git tag -s v${nextVersion} -m "v${nextVersion}"`, { cwd: root, stdio: "inherit" });
-execSync(`git push --follow-tags`, { cwd: root, stdio: "inherit" });
+run("git add -A", { stdio: "inherit" });
+run(`git commit -S -m "Release v${nextVersion}"`, { stdio: "inherit" });
+run(`git push -u origin ${releaseBranch}`, { stdio: "inherit" });
 
-console.log(`\nReleased v${nextVersion}. CI will publish to npm.`);
+run(
+  `gh pr create --base main --head ${releaseBranch} ` +
+    `--title "Release v${nextVersion}" ` +
+    `--body "Bumps both packages to v${nextVersion}. Merging will trigger the tag-and-publish workflow."`,
+  { stdio: "inherit" },
+);
+
+run("git checkout main", { stdio: "inherit" });
+
+console.log(
+  `\nRelease PR opened. After CI passes, squash-merge it. The tag-release workflow will create v${nextVersion} and trigger the publish workflow.`,
+);
