@@ -1,0 +1,33 @@
+date,product,category,region,quantity,unit_price
+2025-01-05,Laptop,Electronics,North,3,999.99
+2025-01-07,T-Shirt,Clothing,South,25,29.99
+2025-01-10,Headphones,Electronics,East,10,79.99
+2025-01-12,Rice (5kg),Food,West,50,12.49
+2025-01-15,Smartphone,Electronics,North,5,699.99
+2025-01-18,Jeans,Clothing,East,15,59.99
+2025-01-20,Olive Oil,Food,South,30,8.99
+2025-01-22,Tablet,Electronics,West,4,449.99
+2025-01-25,Jacket,Clothing,North,8,129.99
+2025-01-28,Pasta,Food,East,40,3.49
+2025-02-01,Laptop,Electronics,South,2,999.99
+2025-02-03,T-Shirt,Clothing,West,20,29.99
+2025-02-05,Headphones,Electronics,North,12,79.99
+2025-02-08,Rice (5kg),Food,East,45,12.49
+2025-02-10,Smartphone,Electronics,South,7,699.99
+2025-02-12,Broken Row,Electronics,North,bad_qty,49.99
+2025-02-13,Jeans,Clothing,West,18,59.99
+2025-02-15,Olive Oil,Food,North,35,8.99
+2025-02-18,Tablet,Electronics,East,6,449.99
+2025-02-20,Jacket,Clothing,South,10,129.99
+2025-02-22,Pasta,Food,West,55,3.49
+2025-02-25,,Food,North,20,5.99
+2025-02-28,Laptop,Electronics,East,4,999.99
+2025-03-02,T-Shirt,Clothing,North,30,29.99
+2025-03-05,Headphones,Electronics,West,8,79.99
+2025-03-08,Rice (5kg),Food,South,60,12.49
+2025-03-10,Smartphone,Electronics,North,3,699.99
+2025-03-12,Jeans,Clothing,East,22,59.99
+2025-03-15,Olive Oil,Food,West,25,8.99
+2025-03-18,Tablet,Electronics,South,5,449.99
+2025-03-20,Jacket,Clothing,West,12,129.99
+2025-03-22,Pasta,Food,North,35,3.49

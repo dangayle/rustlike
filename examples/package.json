@@ -1,0 +1,28 @@
+{
+  "name": "rustlike-examples",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hello": "tsx 01-hello-world/index.ts",
+    "todo": "tsx 02-todo-app/index.ts",
+    "fizzbuzz": "tsx 03-fizzbuzz/index.ts",
+    "fibonacci": "tsx 04-fibonacci/index.ts",
+    "clicker": "tsx 05-button-clicker/index.ts",
+    "iris": "tsx 06-iris-classification/index.ts",
+    "grep": "tsx 07-grep-tool/index.ts",
+    "fetch-json": "tsx 08-fetch-json/index.ts",
+    "state-machine": "tsx 09-state-machine/index.ts",
+    "log-analyzer": "tsx 10-log-analyzer/index.ts",
+    "sales-report": "tsx 11-sales-report-generator/index.ts",
+    "markdown": "tsx 12-markdown-parser/index.ts",
+    "graphql": "tsx 13-graphql-schema/index.ts",
+    "lint": "echo 'Linting handled from root via oxlint'"
+  },
+  "dependencies": {
+    "rustlike": "file:.."
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
+  }
+}

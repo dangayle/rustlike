@@ -1,0 +1,95 @@
+/**
+ * Interop helpers for wrapping third-party and standard library code
+ */
+
+import { Option, None, Result, Ok, Err } from "./core";
+
+/**
+ * One-shot: wrap a single throwing operation in a Result.
+ * Use {@link safeTry} to create a reusable safe wrapper instead.
+ *
+ * @example
+ * const result = tryCatch(() => JSON.parse(userInput));
+ * // Result<unknown, unknown>
+ */
+export const tryCatch = <T, E = unknown>(fn: () => T): Result<T, E> => {
+  try {
+    return Ok(fn());
+  } catch (e) {
+    // Cast: TypeScript catch blocks type errors as `unknown`. The caller
+    // narrows via the E parameter (defaulting to `unknown`). This is safe
+    // because the caller opts into the cast by specifying E.
+    return Err(e as E);
+  }
+};
+
+/**
+ * Wrap any async function that might reject to return Result
+ *
+ * @example
+ * const result = await tryAsync(() => axios.get('/api/users'));
+ * // Result<AxiosResponse, AxiosError>
+ */
+export const tryAsync = async <T, E = unknown>(fn: () => Promise<T>): Promise<Result<T, E>> => {
+  try {
+    return Ok(await fn());
+  } catch (e) {
+    // Cast: see tryCatch — caller narrows E via the type parameter.
+    return Err(e as E);
+  }
+};
+
+/**
+ * Create a reusable Option-returning version of any function that may return
+ * T | null | undefined or throw. Returns None on null, undefined, or throw.
+ *
+ * @example
+ * const safeFind = safeCall((id: number) => users.find(u => u.id === id));
+ * const user = safeFind(42); // Option<User>
+ */
+export const safeCall =
+  <Args extends unknown[], T>(fn: (...args: Args) => T | null | undefined) =>
+  (...args: Args): Option<T> => {
+    try {
+      return Option.from(fn(...args));
+    } catch {
+      return None;
+    }
+  };
+
+/**
+ * Create a reusable Option-returning version of any async function that may return
+ * T | null | undefined or reject. Returns None on null, undefined, or rejection.
+ *
+ * @example
+ * const safeFetch = safeCallAsync((url: string) => fetch(url).then(r => r.ok ? r : null));
+ * const response = await safeFetch('/api'); // Option<Response>
+ */
+export const safeCallAsync =
+  <Args extends unknown[], T>(fn: (...args: Args) => Promise<T | null | undefined>) =>
+  async (...args: Args): Promise<Option<T>> => {
+    try {
+      return Option.from(await fn(...args));
+    } catch {
+      return None;
+    }
+  };
+
+/**
+ * Reusable: wrap a throwing function so every call returns a Result.
+ * Use {@link tryCatch} for one-shot operations instead.
+ *
+ * @example
+ * const safeJsonParse = safeTry(JSON.parse);
+ * const data = safeJsonParse(input); // Result<unknown, unknown>
+ */
+export const safeTry =
+  <Args extends unknown[], T, E = unknown>(fn: (...args: Args) => T) =>
+  (...args: Args): Result<T, E> => {
+    try {
+      return Ok(fn(...args));
+    } catch (e) {
+      // Cast: see tryCatch — caller narrows E via the type parameter.
+      return Err(e as E);
+    }
+  };

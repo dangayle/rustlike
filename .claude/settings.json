@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(jq -r '.tool_input.file_path'); case \"$FILE\" in *.ts|*.js|*.json|*.mts|*.cts|*.mjs|*.cjs) npx oxfmt --write \"$FILE\" 2>/dev/null; npx oxlint \"$FILE\" 2>&1 || true ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

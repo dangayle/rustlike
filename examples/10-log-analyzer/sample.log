@@ -1,0 +1,61 @@
+2025-12-23T10:15:42Z INFO [OrderService] Starting order processing for order #12345
+2025-12-23T10:15:43Z INFO [OrderService] Validating order items
+2025-12-23T10:15:44Z INFO [PaymentService] Processing payment for $150.00
+2025-12-23T10:15:45Z WARN [PaymentService] Payment gateway slow response (1200ms)
+2025-12-23T10:15:46Z INFO [PaymentService] Payment successful, transaction ID: TXN-98765
+2025-12-23T10:15:47Z INFO [OrderService] Request completed in 450ms
+2025-12-23T10:16:01Z INFO [OrderService] Starting order processing for order #12346
+2025-12-23T10:16:02Z ERROR [PaymentService] Payment processing failed
+  at processPayment (payment.ts:142)
+  at handleOrder (order.ts:89)
+  at main (index.ts:12)
+2025-12-23T10:16:03Z WARN [OrderService] Retry attempt 1/3
+2025-12-23T10:16:04Z ERROR [PaymentService] Payment processing failed
+  at processPayment (payment.ts:142)
+  at handleOrder (order.ts:89)
+  at main (index.ts:12)
+2025-12-23T10:16:05Z WARN [OrderService] Retry attempt 2/3
+2025-12-23T10:16:06Z INFO [PaymentService] Payment successful on retry, transaction ID: TXN-98766
+2025-12-23T10:16:07Z INFO [OrderService] Request completed in 1850ms
+2025-12-23T10:17:00Z INFO [InventoryService] Checking stock levels
+2025-12-23T10:17:01Z WARN [InventoryService] Low stock warning for SKU-001 (5 remaining)
+2025-12-23T10:17:02Z INFO [InventoryService] Stock check completed
+2025-12-23T10:18:00Z INFO [OrderService] Starting order processing for order #12347
+2025-12-23T10:18:01Z INFO [PaymentService] Processing payment for $75.50
+2025-12-23T10:18:02Z ERROR [PaymentService] Invalid card number
+  at validateCard (validation.ts:55)
+  at processPayment (payment.ts:120)
+  at handleOrder (order.ts:89)
+2025-12-23T10:18:03Z INFO [OrderService] Order cancelled due to payment failure
+2025-12-23T10:19:00Z INFO [ShippingService] Calculating shipping for order #12345
+2025-12-23T10:19:01Z INFO [ShippingService] Shipping cost: $12.99
+2025-12-23T10:19:02Z INFO [ShippingService] Request completed in 320ms
+2025-12-23T10:20:00Z INFO [OrderService] Starting order processing for order #12348
+2025-12-23T10:20:01Z INFO [PaymentService] Processing payment for $220.00
+2025-12-23T10:20:02Z INFO [PaymentService] Payment successful, transaction ID: TXN-98767
+2025-12-23T10:20:03Z INFO [OrderService] Request completed in 380ms
+2025-12-23T10:21:00Z ERROR [DatabaseService] Connection pool exhausted
+  at getConnection (db.ts:45)
+  at executeQuery (db.ts:78)
+  at findOrder (order-repo.ts:23)
+2025-12-23T10:21:01Z WARN [DatabaseService] Attempting to reconnect...
+2025-12-23T10:21:02Z INFO [DatabaseService] Connection restored
+2025-12-23T10:22:00Z INFO [OrderService] Starting order processing for order #12349
+2025-12-23T10:22:01Z INFO [PaymentService] Processing payment for $89.99
+2025-12-23T10:22:02Z WARN [PaymentService] Payment gateway slow response (2100ms)
+2025-12-23T10:22:03Z INFO [PaymentService] Payment successful, transaction ID: TXN-98768
+2025-12-23T10:22:04Z INFO [OrderService] Request completed in 2250ms
+2025-12-23T10:23:00Z INFO [NotificationService] Sending order confirmation email
+2025-12-23T10:23:01Z INFO [NotificationService] Email sent successfully
+2025-12-23T10:24:00Z ERROR [InventoryService] Failed to update stock
+  at updateStock (inventory.ts:88)
+  at processOrder (order.ts:156)
+2025-12-23T10:24:01Z WARN [InventoryService] Queueing stock update for retry
+2025-12-23T10:25:00Z INFO [HealthCheck] All services healthy
+2025-12-23T10:25:01Z INFO [HealthCheck] Memory usage: 45%
+2025-12-23T10:25:02Z INFO [HealthCheck] CPU usage: 23%
+
+
+
+
+

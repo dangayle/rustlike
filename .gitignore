@@ -1,0 +1,5 @@
+node_modules
+dist
+coverage
+# Local Claude settings (personal)
+.claude/settings.local.json
