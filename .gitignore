@@ -3,3 +3,5 @@ dist
 coverage
 # Local Claude settings (personal)
 .claude/settings.local.json
+# Superpowers design docs (local workflow artifacts)
+docs/superpowers/
