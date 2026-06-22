@@ -880,7 +880,15 @@ The release script bumps both packages in sync on a `release/vX.Y.Z` branch, sig
 
 The publish workflow safely skips packages whose version is already on npm, so re-running on an existing tag is a no-op.
 
-### Manual publish (not recommended)
+### Manual publish trigger
+
+The tag-release workflow pushes tags using `GITHUB_TOKEN`, which [does not trigger downstream workflows](https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow). If the publish workflow doesn't fire automatically after a tag is created, dispatch it manually:
+
+```bash
+gh workflow run publish.yml --ref v0.2.0   # replace with the tag to publish
+```
+
+### Manual publish to npm (not recommended)
 
 Only needed for the very first publish or recovery scenarios:
 
