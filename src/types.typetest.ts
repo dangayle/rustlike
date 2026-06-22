@@ -19,7 +19,18 @@ import {
   type Result as ResultType,
 } from "./core";
 import { brand, newtype, nonEmpty, head, type Brand, type NonEmptyArray } from "./types";
-import { tryCatch, tryAsync, safeCall, safeTry } from "./interop";
+import {
+  tryCatch,
+  tryAsync,
+  safeCall,
+  safeTry,
+  toThrowable,
+  toThrowableAsync,
+  toNullable,
+  toNullableAsync,
+  intoThrowable,
+  intoNullable,
+} from "./interop";
 import { AsyncResult } from "./async";
 
 // ============================================================================
@@ -430,6 +441,65 @@ describe("interop types", () => {
       const safeFn = safeTry(fn);
 
       expectTypeOf(safeFn).toBeCallableWith(1, "test");
+    });
+  });
+
+  describe("outbound interop", () => {
+    describe("intoThrowable", () => {
+      it("returns T from Ok<T, E>", () => {
+        const result = intoThrowable(Ok(42));
+        expectTypeOf(result).toEqualTypeOf<number>();
+      });
+    });
+
+    describe("intoNullable", () => {
+      it("returns T | null from Option<T>", () => {
+        const result = intoNullable(Some("hello"));
+        expectTypeOf(result).toEqualTypeOf<string | null>();
+      });
+    });
+
+    describe("toThrowable", () => {
+      it("preserves argument types and returns T", () => {
+        const fn = (_a: string, _b: number): ResultType<boolean, Error> => Ok(true);
+        const wrapped = toThrowable(fn);
+        expectTypeOf(wrapped).toBeCallableWith("test", 42);
+        expectTypeOf(wrapped("test", 42)).toEqualTypeOf<boolean>();
+      });
+    });
+
+    describe("toThrowableAsync", () => {
+      it("accepts Promise<Result<T, E>>", () => {
+        const fn = async (_x: number): Promise<ResultType<string, Error>> => Ok("ok");
+        const wrapped = toThrowableAsync(fn);
+        expectTypeOf(wrapped).toBeCallableWith(1);
+        expectTypeOf(wrapped(1)).toEqualTypeOf<Promise<string>>();
+      });
+
+      it("accepts AsyncResult<T, E>", () => {
+        const fn = (_x: number): AsyncResult<string, Error> => AsyncResult.ok("ok");
+        const wrapped = toThrowableAsync(fn);
+        expectTypeOf(wrapped).toBeCallableWith(1);
+        expectTypeOf(wrapped(1)).toEqualTypeOf<Promise<string>>();
+      });
+    });
+
+    describe("toNullable", () => {
+      it("preserves argument types and returns T | null", () => {
+        const fn = (_id: number): OptionType<string> => Some("test");
+        const wrapped = toNullable(fn);
+        expectTypeOf(wrapped).toBeCallableWith(1);
+        expectTypeOf(wrapped(1)).toEqualTypeOf<string | null>();
+      });
+    });
+
+    describe("toNullableAsync", () => {
+      it("returns Promise<T | null>", () => {
+        const fn = async (_id: number): Promise<OptionType<string>> => Some("test");
+        const wrapped = toNullableAsync(fn);
+        expectTypeOf(wrapped).toBeCallableWith(1);
+        expectTypeOf(wrapped(1)).toEqualTypeOf<Promise<string | null>>();
+      });
     });
   });
 });
