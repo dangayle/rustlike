@@ -93,3 +93,98 @@ export const safeTry =
       return Err(e as E);
     }
   };
+
+// ============================================================================
+// Outbound interop: Rustlike → standard TypeScript
+// ============================================================================
+
+/**
+ * Convert a single Result value to its unwrapped value, throwing the error if Err.
+ * Use {@link toThrowable} to wrap an entire function instead.
+ *
+ * @example
+ * const value = intoThrowable(Ok(42)); // 42
+ * const value = intoThrowable(Err("boom")); // throws "boom"
+ */
+export const intoThrowable = <T, E>(result: Result<T, E>): T => {
+  if (result.isOk()) return result.value;
+  throw result.error;
+};
+
+/**
+ * Convert a single Option value to T | null.
+ * Returns the inner value for Some, or null for None.
+ * Use {@link toNullable} to wrap an entire function instead.
+ *
+ * @example
+ * const value = intoNullable(Some("hello")); // "hello"
+ * const value = intoNullable(None); // null
+ *
+ * @note `Some(null)` returns `null` — indistinguishable from `None`.
+ *       If you need to distinguish the two, keep the `Option<T>` and
+ *       match on it rather than converting.
+ */
+export const intoNullable = <T>(option: Option<T>): T | null => {
+  return option.isSome() ? option.value : null;
+};
+
+/**
+ * Wrap a Result-returning function so it returns T directly or throws E.
+ * Creates a standard TypeScript function from a Rustlike one.
+ * Use {@link intoThrowable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeParse = (s: string): Result<Config, ParseError> => { ... };
+ * const parse = toThrowable(safeParse);
+ * // (s: string) => Config (throws ParseError)
+ */
+export const toThrowable =
+  <Args extends unknown[], T, E>(fn: (...args: Args) => Result<T, E>) =>
+  (...args: Args): T =>
+    intoThrowable(fn(...args));
+
+/**
+ * Wrap an Option-returning function so it returns T | null.
+ * Creates a standard TypeScript function from a Rustlike one.
+ * Use {@link intoNullable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeFind = (id: number): Option<User> => { ... };
+ * const find = toNullable(safeFind);
+ * // (id: number) => User | null
+ */
+export const toNullable =
+  <Args extends unknown[], T>(fn: (...args: Args) => Option<T>) =>
+  (...args: Args): T | null =>
+    intoNullable(fn(...args));
+
+/**
+ * Wrap an async Result-returning function so it returns Promise<T> or rejects with E.
+ * Accepts functions returning either AsyncResult<T, E> or Promise<Result<T, E>>
+ * since AsyncResult implements PromiseLike.
+ * Use {@link intoThrowable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeOpen = (path: string): AsyncResult<File, IOError> => { ... };
+ * const open = toThrowableAsync(safeOpen);
+ * // (path: string) => Promise<File> (rejects with IOError)
+ */
+export const toThrowableAsync =
+  <Args extends unknown[], T, E>(fn: (...args: Args) => PromiseLike<Result<T, E>>) =>
+  async (...args: Args): Promise<T> =>
+    intoThrowable(await fn(...args));
+
+/**
+ * Wrap an async Option-returning function so it returns Promise<T | null>.
+ * Accepts functions returning Promise<Option<T>> or any PromiseLike<Option<T>>.
+ * Use {@link intoNullable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeLookup = async (id: number): Promise<Option<User>> => { ... };
+ * const lookup = toNullableAsync(safeLookup);
+ * // (id: number) => Promise<User | null>
+ */
+export const toNullableAsync =
+  <Args extends unknown[], T>(fn: (...args: Args) => PromiseLike<Option<T>>) =>
+  async (...args: Args): Promise<T | null> =>
+    intoNullable(await fn(...args));

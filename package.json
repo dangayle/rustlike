@@ -1,6 +1,6 @@
 {
   "name": "@dangayle/rustlike",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "TypeScript utilities for writing Rust-like code: Result, Option, exhaustive matching, and immutability helpers",
   "keywords": [
     "functional",

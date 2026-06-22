@@ -45,7 +45,19 @@ export {
 } from "./types";
 
 // Interop helpers
-export { tryCatch, tryAsync, safeCall, safeCallAsync, safeTry } from "./interop";
+export {
+  tryCatch,
+  tryAsync,
+  safeCall,
+  safeCallAsync,
+  safeTry,
+  toThrowable,
+  toThrowableAsync,
+  toNullable,
+  toNullableAsync,
+  intoThrowable,
+  intoNullable,
+} from "./interop";
 
 // Lazy iterators (sync)
 export {

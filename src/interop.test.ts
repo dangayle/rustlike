@@ -1,5 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
-import { tryCatch, tryAsync, safeCall, safeCallAsync, safeTry } from "./interop";
+import { Ok, Err, Some, None, type Result, type Option } from "./core";
+import {
+  tryCatch,
+  tryAsync,
+  safeCall,
+  safeCallAsync,
+  safeTry,
+  intoThrowable,
+  intoNullable,
+  toThrowable,
+  toNullable,
+  toThrowableAsync,
+  toNullableAsync,
+} from "./interop";
+import { AsyncResult } from "./async";
 
 describe("tryCatch", () => {
   it("returns Ok for successful function", () => {
@@ -267,5 +281,237 @@ describe("safeTry", () => {
     expect(result.isOk()).toBe(true);
     expect(result.unwrap()).toBeInstanceOf(Promise);
     expect(await result.unwrap()).toBe(42);
+  });
+});
+
+describe("intoThrowable", () => {
+  it("returns value for Ok", () => {
+    expect(intoThrowable(Ok(42))).toBe(42);
+  });
+
+  it("throws error for Err", () => {
+    const error = new Error("test error");
+    expect(() => intoThrowable(Err(error))).toThrow(error);
+  });
+
+  it("throws string errors as-is", () => {
+    expect(() => intoThrowable(Err("string error"))).toThrow("string error");
+  });
+
+  it("throws custom object errors as-is", () => {
+    const customError = { code: "CUSTOM", message: "custom" };
+    expect(() => intoThrowable(Err(customError))).toThrow();
+    try {
+      intoThrowable(Err(customError));
+    } catch (e) {
+      expect(e).toBe(customError);
+    }
+  });
+
+  it("preserves return type", () => {
+    const result = Ok({ name: "test", value: 42 });
+    expect(intoThrowable(result)).toEqual({ name: "test", value: 42 });
+  });
+});
+
+describe("intoNullable", () => {
+  it("returns value for Some", () => {
+    expect(intoNullable(Some(42))).toBe(42);
+  });
+
+  it("returns null for None", () => {
+    expect(intoNullable(None)).toBeNull();
+  });
+
+  it("returns null (not undefined) for None", () => {
+    expect(intoNullable(None)).toBe(null);
+    expect(intoNullable(None)).not.toBeUndefined();
+  });
+
+  it("preserves complex values", () => {
+    expect(intoNullable(Some({ name: "test" }))).toEqual({ name: "test" });
+  });
+
+  it("preserves falsy values", () => {
+    expect(intoNullable(Some(0))).toBe(0);
+    expect(intoNullable(Some(false))).toBe(false);
+    expect(intoNullable(Some(""))).toBe("");
+  });
+
+  it("Some(null) collapses to null, indistinguishable from None", () => {
+    expect(intoNullable(Some(null as string | null))).toBeNull();
+  });
+});
+
+describe("toThrowable", () => {
+  it("wraps a Result-returning function", () => {
+    const safeDivide = (a: number, b: number): Result<number, string> =>
+      b === 0 ? Err("division by zero") : Ok(a / b);
+
+    const divide = toThrowable(safeDivide);
+    expect(divide(10, 2)).toBe(5);
+  });
+
+  it("throws on Err result", () => {
+    const safeDivide = (a: number, b: number): Result<number, string> =>
+      b === 0 ? Err("division by zero") : Ok(a / b);
+
+    const divide = toThrowable(safeDivide);
+    expect(() => divide(10, 0)).toThrow("division by zero");
+  });
+
+  it("preserves all argument types", () => {
+    const fn = (a: string, b: number, c: boolean): Result<string, string> =>
+      c ? Ok(`${a}-${b}`) : Err("c must be true");
+
+    const wrapped = toThrowable(fn);
+    expect(wrapped("test", 42, true)).toBe("test-42");
+    expect(() => wrapped("test", 42, false)).toThrow("c must be true");
+  });
+
+  it("preserves Error instances", () => {
+    const error = new Error("specific error");
+    const fn = (): Result<number, Error> => Err(error);
+
+    const wrapped = toThrowable(fn);
+    expect(() => wrapped()).toThrow(error);
+  });
+});
+
+describe("toNullable", () => {
+  it("wraps an Option-returning function", () => {
+    const findUser = (id: number): Option<{ id: number; name: string }> =>
+      id === 1 ? Some({ id: 1, name: "Alice" }) : None;
+
+    const find = toNullable(findUser);
+    expect(find(1)).toEqual({ id: 1, name: "Alice" });
+  });
+
+  it("returns null for None", () => {
+    const findUser = (id: number): Option<{ id: number; name: string }> =>
+      id === 1 ? Some({ id: 1, name: "Alice" }) : None;
+
+    const find = toNullable(findUser);
+    expect(find(99)).toBeNull();
+  });
+
+  it("preserves all argument types", () => {
+    const fn = (arr: number[], idx: number): Option<number> => {
+      const val = arr[idx];
+      return val !== undefined ? Some(val) : None;
+    };
+
+    const wrapped = toNullable(fn);
+    expect(wrapped([10, 20, 30], 1)).toBe(20);
+    expect(wrapped([10, 20, 30], 99)).toBeNull();
+  });
+
+  it("preserves falsy values", () => {
+    const fn = (x: number): Option<number | boolean | string> =>
+      Some(x === 0 ? 0 : x === 1 ? false : "");
+    const wrapped = toNullable(fn);
+    expect(wrapped(0)).toBe(0);
+    expect(wrapped(1)).toBe(false);
+    expect(wrapped(2)).toBe("");
+  });
+});
+
+describe("toThrowableAsync", () => {
+  it("works with Promise<Result>", async () => {
+    const fn = async (x: number): Promise<Result<number, string>> =>
+      x > 0 ? Ok(x * 2) : Err("must be positive");
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped(5)).resolves.toBe(10);
+  });
+
+  it("rejects on Err result from Promise<Result>", async () => {
+    const fn = async (_x: number): Promise<Result<number, string>> => Err("must be positive");
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped(-1)).rejects.toBe("must be positive");
+  });
+
+  it("works with AsyncResult", async () => {
+    const fn = (x: number): AsyncResult<number, string> =>
+      x > 0 ? AsyncResult.ok(x * 2) : AsyncResult.err("must be positive");
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped(5)).resolves.toBe(10);
+  });
+
+  it("rejects on Err result from AsyncResult", async () => {
+    const fn = (_x: number): AsyncResult<number, string> => AsyncResult.err("must be positive");
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped(-1)).rejects.toBe("must be positive");
+  });
+
+  it("propagates rejections from the underlying PromiseLike", async () => {
+    const fn = async (): Promise<Result<number, string>> => {
+      throw new Error("network failure");
+    };
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped()).rejects.toThrow("network failure");
+  });
+
+  it("preserves argument types", async () => {
+    const fn = async (a: string, b: number): Promise<Result<string, string>> => Ok(`${a}-${b}`);
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped("test", 42)).resolves.toBe("test-42");
+  });
+
+  it("preserves Error instances on rejection", async () => {
+    const error = new Error("specific error");
+    const fn = async (): Promise<Result<number, Error>> => Err(error);
+
+    const wrapped = toThrowableAsync(fn);
+    await expect(wrapped()).rejects.toBe(error);
+  });
+});
+
+describe("toNullableAsync", () => {
+  it("returns value for resolved Some", async () => {
+    const fn = async (id: number): Promise<Option<string>> => (id === 1 ? Some("Alice") : None);
+
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped(1)).resolves.toBe("Alice");
+  });
+
+  it("returns null for resolved None", async () => {
+    const fn = async (id: number): Promise<Option<string>> => (id === 1 ? Some("Alice") : None);
+
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped(99)).resolves.toBeNull();
+  });
+
+  it("preserves argument types", async () => {
+    const fn = async (arr: number[], idx: number): Promise<Option<number>> => {
+      const val = arr[idx];
+      return val !== undefined ? Some(val) : None;
+    };
+
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped([10, 20], 0)).resolves.toBe(10);
+    await expect(wrapped([10, 20], 99)).resolves.toBeNull();
+  });
+
+  it("preserves falsy values", async () => {
+    const fn = async (x: number): Promise<Option<number | boolean | string>> =>
+      Some(x === 0 ? 0 : x === 1 ? false : "");
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped(0)).resolves.toBe(0);
+    await expect(wrapped(1)).resolves.toBe(false);
+    await expect(wrapped(2)).resolves.toBe("");
+  });
+
+  it("propagates rejection from the underlying Promise", async () => {
+    const fn = async (): Promise<Option<string>> => {
+      throw new Error("network failure");
+    };
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped()).rejects.toThrow("network failure");
   });
 });

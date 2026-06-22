@@ -17,6 +17,7 @@
     "sales-report": "tsx 11-sales-report-generator/index.ts",
     "markdown": "tsx 12-markdown-parser/index.ts",
     "graphql": "tsx 13-graphql-schema/index.ts",
+    "config-loader": "tsx 14-config-loader/index.ts",
     "lint": "echo 'Linting handled from root via oxlint'"
   },
   "dependencies": {

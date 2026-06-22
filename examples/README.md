@@ -97,6 +97,12 @@ GraphQL schema validator and query executor showcasing previously unused APIs.
 
 **Demonstrates:** `match()` for generic `__typename` pattern matching, `assertNever()` for exhaustive guards, `tryAsync()` for async error wrapping, `safeCall()` for Option-returning lookups, `DeepReadonly<T>` for immutable schema, `Brand` + `newtype()` for validated scalars, `tryCatch()` for sync parsing, `Result.all()` for validation collection, `iter().map().collect()` for lazy transformation.
 
+### 14. Config Loader
+
+Config loader demonstrating outbound interop at a library boundary.
+
+**Demonstrates:** `toThrowable()` for Result→throwing, `toThrowableAsync()` for AsyncResult→Promise, `toNullable()` for Option→nullable, `intoThrowable()` for one-shot Result conversion, `intoNullable()` for one-shot Option conversion, library boundary pattern where consumers use standard try/catch and null checks.
+
 ## Running Examples
 
 Each example is a standalone pnpm project:
