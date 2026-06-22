@@ -93,3 +93,33 @@ export const safeTry =
       return Err(e as E);
     }
   };
+
+// ============================================================================
+// Outbound interop: Rustlike → standard TypeScript
+// ============================================================================
+
+/**
+ * Convert a single Result value to its unwrapped value, throwing the error if Err.
+ * Use {@link toThrowable} to wrap an entire function instead.
+ *
+ * @example
+ * const value = intoThrowable(Ok(42)); // 42
+ * const value = intoThrowable(Err("boom")); // throws "boom"
+ */
+export const intoThrowable = <T, E>(result: Result<T, E>): T => {
+  if (result.isOk()) return result.value;
+  throw result.error;
+};
+
+/**
+ * Convert a single Option value to T | null.
+ * Returns the inner value for Some, or null for None.
+ * Use {@link toNullable} to wrap an entire function instead.
+ *
+ * @example
+ * const value = intoNullable(Some("hello")); // "hello"
+ * const value = intoNullable(None); // null
+ */
+export const intoNullable = <T>(option: Option<T>): T | null => {
+  return option.isSome() ? option.value : null;
+};

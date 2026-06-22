@@ -1,5 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { tryCatch, tryAsync, safeCall, safeCallAsync, safeTry } from "./interop";
+import { Ok, Err, Some, None } from "./core";
+import {
+  tryCatch,
+  tryAsync,
+  safeCall,
+  safeCallAsync,
+  safeTry,
+  intoThrowable,
+  intoNullable,
+} from "./interop";
 
 describe("tryCatch", () => {
   it("returns Ok for successful function", () => {
@@ -267,5 +276,54 @@ describe("safeTry", () => {
     expect(result.isOk()).toBe(true);
     expect(result.unwrap()).toBeInstanceOf(Promise);
     expect(await result.unwrap()).toBe(42);
+  });
+});
+
+describe("intoThrowable", () => {
+  it("returns value for Ok", () => {
+    expect(intoThrowable(Ok(42))).toBe(42);
+  });
+
+  it("throws error for Err", () => {
+    const error = new Error("test error");
+    expect(() => intoThrowable(Err(error))).toThrow(error);
+  });
+
+  it("throws string errors as-is", () => {
+    expect(() => intoThrowable(Err("string error"))).toThrow("string error");
+  });
+
+  it("throws custom object errors as-is", () => {
+    const customError = { code: "CUSTOM", message: "custom" };
+    expect(() => intoThrowable(Err(customError))).toThrow();
+    try {
+      intoThrowable(Err(customError));
+    } catch (e) {
+      expect(e).toBe(customError);
+    }
+  });
+
+  it("preserves return type", () => {
+    const result = Ok({ name: "test", value: 42 });
+    expect(intoThrowable(result)).toEqual({ name: "test", value: 42 });
+  });
+});
+
+describe("intoNullable", () => {
+  it("returns value for Some", () => {
+    expect(intoNullable(Some(42))).toBe(42);
+  });
+
+  it("returns null for None", () => {
+    expect(intoNullable(None)).toBeNull();
+  });
+
+  it("returns null (not undefined) for None", () => {
+    expect(intoNullable(None)).toBe(null);
+    expect(intoNullable(None)).not.toBeUndefined();
+  });
+
+  it("preserves complex values", () => {
+    expect(intoNullable(Some({ name: "test" }))).toEqual({ name: "test" });
   });
 });
