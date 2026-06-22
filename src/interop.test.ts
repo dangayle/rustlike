@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { Ok, Err, Some, None } from "./core";
+import { Ok, Err, Some, None, type Result, type Option } from "./core";
 import {
   tryCatch,
   tryAsync,
@@ -8,6 +8,8 @@ import {
   safeTry,
   intoThrowable,
   intoNullable,
+  toThrowable,
+  toNullable,
 } from "./interop";
 
 describe("tryCatch", () => {
@@ -325,5 +327,69 @@ describe("intoNullable", () => {
 
   it("preserves complex values", () => {
     expect(intoNullable(Some({ name: "test" }))).toEqual({ name: "test" });
+  });
+});
+
+describe("toThrowable", () => {
+  it("wraps a Result-returning function", () => {
+    const safeDivide = (a: number, b: number): Result<number, string> =>
+      b === 0 ? Err("division by zero") : Ok(a / b);
+
+    const divide = toThrowable(safeDivide);
+    expect(divide(10, 2)).toBe(5);
+  });
+
+  it("throws on Err result", () => {
+    const safeDivide = (a: number, b: number): Result<number, string> =>
+      b === 0 ? Err("division by zero") : Ok(a / b);
+
+    const divide = toThrowable(safeDivide);
+    expect(() => divide(10, 0)).toThrow("division by zero");
+  });
+
+  it("preserves all argument types", () => {
+    const fn = (a: string, b: number, c: boolean): Result<string, string> =>
+      c ? Ok(`${a}-${b}`) : Err("c must be true");
+
+    const wrapped = toThrowable(fn);
+    expect(wrapped("test", 42, true)).toBe("test-42");
+    expect(() => wrapped("test", 42, false)).toThrow("c must be true");
+  });
+
+  it("preserves Error instances", () => {
+    const error = new Error("specific error");
+    const fn = (): Result<number, Error> => Err(error);
+
+    const wrapped = toThrowable(fn);
+    expect(() => wrapped()).toThrow(error);
+  });
+});
+
+describe("toNullable", () => {
+  it("wraps an Option-returning function", () => {
+    const findUser = (id: number): Option<{ id: number; name: string }> =>
+      id === 1 ? Some({ id: 1, name: "Alice" }) : None;
+
+    const find = toNullable(findUser);
+    expect(find(1)).toEqual({ id: 1, name: "Alice" });
+  });
+
+  it("returns null for None", () => {
+    const findUser = (id: number): Option<{ id: number; name: string }> =>
+      id === 1 ? Some({ id: 1, name: "Alice" }) : None;
+
+    const find = toNullable(findUser);
+    expect(find(99)).toBeNull();
+  });
+
+  it("preserves all argument types", () => {
+    const fn = (arr: number[], idx: number): Option<number> => {
+      const val = arr[idx];
+      return val !== undefined ? Some(val) : None;
+    };
+
+    const wrapped = toNullable(fn);
+    expect(wrapped([10, 20, 30], 1)).toBe(20);
+    expect(wrapped([10, 20, 30], 99)).toBeNull();
   });
 });

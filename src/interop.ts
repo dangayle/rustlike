@@ -123,3 +123,33 @@ export const intoThrowable = <T, E>(result: Result<T, E>): T => {
 export const intoNullable = <T>(option: Option<T>): T | null => {
   return option.isSome() ? option.value : null;
 };
+
+/**
+ * Wrap a Result-returning function so it returns T directly or throws E.
+ * Creates a standard TypeScript function from a Rustlike one.
+ * Use {@link intoThrowable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeParse = (s: string): Result<Config, ParseError> => { ... };
+ * const parse = toThrowable(safeParse);
+ * // (s: string) => Config (throws ParseError)
+ */
+export const toThrowable =
+  <Args extends unknown[], T, E>(fn: (...args: Args) => Result<T, E>) =>
+  (...args: Args): T =>
+    intoThrowable(fn(...args));
+
+/**
+ * Wrap an Option-returning function so it returns T | null.
+ * Creates a standard TypeScript function from a Rustlike one.
+ * Use {@link intoNullable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeFind = (id: number): Option<User> => { ... };
+ * const find = toNullable(safeFind);
+ * // (id: number) => User | null
+ */
+export const toNullable =
+  <Args extends unknown[], T>(fn: (...args: Args) => Option<T>) =>
+  (...args: Args): T | null =>
+    intoNullable(fn(...args));
