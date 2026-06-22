@@ -494,8 +494,15 @@ describe("interop types", () => {
     });
 
     describe("toNullableAsync", () => {
-      it("returns Promise<T | null>", () => {
+      it("accepts Promise<Option<T>>", () => {
         const fn = async (_id: number): Promise<OptionType<string>> => Some("test");
+        const wrapped = toNullableAsync(fn);
+        expectTypeOf(wrapped).toBeCallableWith(1);
+        expectTypeOf(wrapped(1)).toEqualTypeOf<Promise<string | null>>();
+      });
+
+      it("accepts PromiseLike<Option<T>>", () => {
+        const fn = (_id: number): PromiseLike<OptionType<string>> => Promise.resolve(Some("test"));
         const wrapped = toNullableAsync(fn);
         expectTypeOf(wrapped).toBeCallableWith(1);
         expectTypeOf(wrapped(1)).toEqualTypeOf<Promise<string | null>>();

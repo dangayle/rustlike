@@ -331,6 +331,16 @@ describe("intoNullable", () => {
   it("preserves complex values", () => {
     expect(intoNullable(Some({ name: "test" }))).toEqual({ name: "test" });
   });
+
+  it("preserves falsy values", () => {
+    expect(intoNullable(Some(0))).toBe(0);
+    expect(intoNullable(Some(false))).toBe(false);
+    expect(intoNullable(Some(""))).toBe("");
+  });
+
+  it("Some(null) collapses to null, indistinguishable from None", () => {
+    expect(intoNullable(Some(null as string | null))).toBeNull();
+  });
 });
 
 describe("toThrowable", () => {
@@ -394,6 +404,15 @@ describe("toNullable", () => {
     const wrapped = toNullable(fn);
     expect(wrapped([10, 20, 30], 1)).toBe(20);
     expect(wrapped([10, 20, 30], 99)).toBeNull();
+  });
+
+  it("preserves falsy values", () => {
+    const fn = (x: number): Option<number | boolean | string> =>
+      Some(x === 0 ? 0 : x === 1 ? false : "");
+    const wrapped = toNullable(fn);
+    expect(wrapped(0)).toBe(0);
+    expect(wrapped(1)).toBe(false);
+    expect(wrapped(2)).toBe("");
   });
 });
 
@@ -477,5 +496,22 @@ describe("toNullableAsync", () => {
     const wrapped = toNullableAsync(fn);
     await expect(wrapped([10, 20], 0)).resolves.toBe(10);
     await expect(wrapped([10, 20], 99)).resolves.toBeNull();
+  });
+
+  it("preserves falsy values", async () => {
+    const fn = async (x: number): Promise<Option<number | boolean | string>> =>
+      Some(x === 0 ? 0 : x === 1 ? false : "");
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped(0)).resolves.toBe(0);
+    await expect(wrapped(1)).resolves.toBe(false);
+    await expect(wrapped(2)).resolves.toBe("");
+  });
+
+  it("propagates rejection from the underlying Promise", async () => {
+    const fn = async (): Promise<Option<string>> => {
+      throw new Error("network failure");
+    };
+    const wrapped = toNullableAsync(fn);
+    await expect(wrapped()).rejects.toThrow("network failure");
   });
 });

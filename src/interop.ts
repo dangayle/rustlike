@@ -119,6 +119,10 @@ export const intoThrowable = <T, E>(result: Result<T, E>): T => {
  * @example
  * const value = intoNullable(Some("hello")); // "hello"
  * const value = intoNullable(None); // null
+ *
+ * @note `Some(null)` returns `null` — indistinguishable from `None`.
+ *       If you need to distinguish the two, keep the `Option<T>` and
+ *       match on it rather than converting.
  */
 export const intoNullable = <T>(option: Option<T>): T | null => {
   return option.isSome() ? option.value : null;
@@ -172,6 +176,7 @@ export const toThrowableAsync =
 
 /**
  * Wrap an async Option-returning function so it returns Promise<T | null>.
+ * Accepts functions returning Promise<Option<T>> or any PromiseLike<Option<T>>.
  * Use {@link intoNullable} for one-shot value conversion instead.
  *
  * @example
@@ -180,6 +185,6 @@ export const toThrowableAsync =
  * // (id: number) => Promise<User | null>
  */
 export const toNullableAsync =
-  <Args extends unknown[], T>(fn: (...args: Args) => Promise<Option<T>>) =>
+  <Args extends unknown[], T>(fn: (...args: Args) => PromiseLike<Option<T>>) =>
   async (...args: Args): Promise<T | null> =>
     intoNullable(await fn(...args));

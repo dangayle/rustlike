@@ -87,9 +87,10 @@ async function loadConfigAsync(raw: string): Promise<Config> {
 // ============================================================================
 
 function formatError(e: unknown): string {
+  if (typeof e !== "object" || e === null) return `[unknown] ${String(e)}`;
   const err = e as ConfigError;
   const prefix = "field" in err ? `${err.field}: ` : "";
-  return `[${err.kind}] ${prefix}${err.message}`;
+  return `[${err.kind ?? "unknown"}] ${prefix}${err.message ?? ""}`;
 }
 
 async function main() {
