@@ -153,3 +153,33 @@ export const toNullable =
   <Args extends unknown[], T>(fn: (...args: Args) => Option<T>) =>
   (...args: Args): T | null =>
     intoNullable(fn(...args));
+
+/**
+ * Wrap an async Result-returning function so it returns Promise<T> or rejects with E.
+ * Accepts functions returning either AsyncResult<T, E> or Promise<Result<T, E>>
+ * since AsyncResult implements PromiseLike.
+ * Use {@link intoThrowable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeOpen = (path: string): AsyncResult<File, IOError> => { ... };
+ * const open = toThrowableAsync(safeOpen);
+ * // (path: string) => Promise<File> (rejects with IOError)
+ */
+export const toThrowableAsync =
+  <Args extends unknown[], T, E>(fn: (...args: Args) => PromiseLike<Result<T, E>>) =>
+  async (...args: Args): Promise<T> =>
+    intoThrowable(await fn(...args));
+
+/**
+ * Wrap an async Option-returning function so it returns Promise<T | null>.
+ * Use {@link intoNullable} for one-shot value conversion instead.
+ *
+ * @example
+ * const safeLookup = async (id: number): Promise<Option<User>> => { ... };
+ * const lookup = toNullableAsync(safeLookup);
+ * // (id: number) => Promise<User | null>
+ */
+export const toNullableAsync =
+  <Args extends unknown[], T>(fn: (...args: Args) => Promise<Option<T>>) =>
+  async (...args: Args): Promise<T | null> =>
+    intoNullable(await fn(...args));
